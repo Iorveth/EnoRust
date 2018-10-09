@@ -1,0 +1,8 @@
+[package]
+name = "EnoRust"
+version = "0.1.0"
+authors = ["arsen"]
+
+[dependencies]
+regex = "1"
+runtime-fmt = "0.3.0"
