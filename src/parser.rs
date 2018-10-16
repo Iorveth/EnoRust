@@ -41,6 +41,12 @@ impl ContextValues {
             None
         }
     }
+    pub fn get_instruction_mut(&mut self) -> Option<&mut LinkedList<HashMap<&'static str, InstructionValues>>> {
+        match self {
+            ContextValues::Instruction(c) => Some(c),
+            _ => None,
+        }
+    }
 }
 
 pub fn parse(input: &'static str, locale: &'static str, zero_indexing: bool) {
@@ -56,6 +62,6 @@ pub fn parse(input: &'static str, locale: &'static str, zero_indexing: bool) {
     );
     context.insert("Locale", ContextValues::Locale(locale));
     //println!("{}", context.get("Input").unwrap().getStr().unwrap());
-    let mut tokenizer = Tokenizer::new(context);
+    let mut tokenizer = Tokenizer::new(&mut context);
     tokenizer.tokenize();
 }

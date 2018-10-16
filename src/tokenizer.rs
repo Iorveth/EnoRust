@@ -75,10 +75,10 @@ impl InstructionValues {
 }
 
 impl Tokenizer {
-    pub fn new(contextt: HashMap<&'static str, ContextValues>) -> Tokenizer {
+    pub fn new(context: &mut HashMap<&'static str, ContextValues>) -> Tokenizer {
         let mut k = Tokenizer {
-            context: contextt.clone(),
-            input: contextt.get("Input").unwrap().get_str().unwrap(),
+            context: context.clone(),
+            input: context.get("Input").unwrap().get_str().unwrap(),
             line: 0,
             index: 0,
             instructions: LinkedList::new(),
@@ -625,10 +625,9 @@ impl Tokenizer {
                     }),
                 );
                 self.context
-                    .get("Instructions")
+                    .get_mut("Instructions")
                     .unwrap()
-                    .get_instruction()
-                    .as_mut()
+                    .get_instruction_mut()
                     .unwrap()
                     .push_back(instruction.clone());
 
@@ -930,9 +929,9 @@ impl Tokenizer {
                     );
                     self.index = r.unwrap().end() + 1;
                     self.context
-                        .get("Instructions")
+                        .get_mut("Instructions")
                         .unwrap()
-                        .get_instruction()
+                        .get_instruction_mut()
                         .unwrap()
                         .push_back(instruction.clone());
                     self.line += 1;
@@ -944,9 +943,9 @@ impl Tokenizer {
                         && self.input.chars().nth(self.input.len() - 1).unwrap() == '\n'
                     {
                         self.context
-                            .get("Instructions")
+                            .get_mut("Instructions")
                             .unwrap()
-                            .get_instruction()
+                            .get_instruction_mut()
                             .unwrap()
                             .push_back({
                                 instr.insert("Index", InstructionValues::Index(self.input.len()));
@@ -976,8 +975,7 @@ impl Tokenizer {
                 instruction.insert("Line", InstructionValues::Line(self.line));
                 for (key, val) in self.context.iter_mut() {
                     if key == &"Instructions" {
-                        val.get_instruction()
-                            .as_mut()
+                        val.get_instruction_mut()
                             .unwrap()
                             .push_back(instruction.clone());
                     }
@@ -996,7 +994,7 @@ impl Tokenizer {
                 instruction.insert("Line", InstructionValues::Line(self.line));
                 for (key, val) in self.context.iter_mut() {
                     if key == &"Instructions" {
-                        val.get_instruction().unwrap().push_back(instruction.clone());
+                        val.get_instruction_mut().unwrap().push_back(instruction.clone());
                     }
                 }
                 if first_instruction.is_empty() {
