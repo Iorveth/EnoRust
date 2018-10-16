@@ -10,10 +10,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0b725390-a93d-480a-b64d-f4ea49e15711" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/EnoRust.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/EnoRust.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/parser.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/parser.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tokenizer.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/tokenizer.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../eno_rust/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../eno_rust/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../eno_rust/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../eno_rust/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../eno_rust/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../eno_rust/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../eno_rust/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../eno_rust/src/main.rs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -39,19 +39,21 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
+          <entry key="lock" value="1" />
           <entry key="rs" value="46" />
-          <entry key="toml" value="2" />
+          <entry key="toml" value="3" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Rust" value="46" />
-          <entry key="TOML file" value="2" />
+          <entry key="TOML file" value="4" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="rs" value="16475" />
+          <entry key="lock" value="8" />
+          <entry key="rs" value="16524" />
           <entry key="toml" value="12" />
           <entry key="txt" value="52" />
         </counts>
@@ -59,37 +61,37 @@
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="52" />
-          <entry key="Rust" value="16475" />
-          <entry key="TOML file" value="12" />
+          <entry key="Rust" value="16524" />
+          <entry key="TOML file" value="20" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="20" selection-start-line="6" selection-start-column="20" selection-end-line="6" selection-end-column="20" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/parser.rs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="228">
-              <caret line="47" column="9" lean-forward="true" selection-start-line="47" selection-start-column="9" selection-end-line="47" selection-end-column="9" />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/tokenizer.rs">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/main.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="245">
-              <caret line="1004" column="17" lean-forward="true" selection-start-line="1004" selection-start-column="17" selection-end-line="1004" selection-end-column="17" />
+            <state relative-caret-position="187">
+              <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/parser.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="197">
+              <caret line="47" column="9" selection-start-line="47" selection-start-column="9" selection-end-line="47" selection-end-column="9" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/tokenizer.rs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="17017">
+              <caret line="1001" selection-start-line="1001" selection-end-line="1001" />
             </state>
           </provider>
         </entry>
@@ -104,28 +106,46 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/messages.rs">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/messages.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="109">
+            <state relative-caret-position="78">
               <caret line="209" column="12" selection-start-line="209" selection-start-column="12" selection-end-line="209" selection-end-column="12" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/grammar_regex.rs">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/grammar_regex.rs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="293">
-              <caret line="49" column="41" selection-start-line="49" selection-start-column="41" selection-end-line="49" selection-end-column="41" />
+            <state relative-caret-position="102">
+              <caret line="6" column="2" selection-start-line="6" selection-start-column="2" selection-end-line="6" selection-end-column="2" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/lib.rs">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/src/lib.rs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="136">
               <caret line="8" selection-start-line="8" selection-end-line="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/Cargo.lock">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="17">
+              <caret line="1" column="8" selection-start-line="1" selection-start-column="8" selection-end-line="1" selection-end-column="8" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/../eno_rust/Cargo.toml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="51">
+              <caret line="3" column="19" selection-start-line="3" selection-start-column="19" selection-end-line="3" selection-end-column="19" />
             </state>
           </provider>
         </entry>
@@ -152,6 +172,8 @@
       <find>first_instruction</find>
       <find>escaped_name</find>
       <find>get</find>
+      <find>^\S\n]*(?:{EMPTY}|{NOT_EMPTY})[^\S\n]*(?=\n|$</find>
+      <find>{EMPTY}|{NOT_EMPTY})[^\S\n]</find>
     </findStrings>
     <replaceStrings>
       <replace>&quot;</replace>
@@ -165,7 +187,7 @@
     </replaceStrings>
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../eno_rust" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -183,6 +205,10 @@
         <option value="$PROJECT_DIR$/src/messages.rs" />
         <option value="$PROJECT_DIR$/src/parser.rs" />
         <option value="$PROJECT_DIR$/src/tokenizer.rs" />
+        <option value="$PROJECT_DIR$/../eno_rust/src/grammar_regex.rs" />
+        <option value="$PROJECT_DIR$/../eno_rust/Cargo.lock" />
+        <option value="$PROJECT_DIR$/../eno_rust/Cargo.toml" />
+        <option value="$PROJECT_DIR$/../eno_rust/src/main.rs" />
       </list>
     </option>
   </component>
@@ -198,6 +224,7 @@
     <option name="width" value="1346" />
     <option name="height" value="688" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
@@ -209,11 +236,11 @@
           <expand>
             <path>
               <item name="EnoRust" type="b2602c69:ProjectViewProjectNode" />
-              <item name="EnoRust" type="462c0819:PsiDirectoryNode" />
+              <item name="eno_rust" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="EnoRust" type="b2602c69:ProjectViewProjectNode" />
-              <item name="EnoRust" type="462c0819:PsiDirectoryNode" />
+              <item name="eno_rust" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -224,18 +251,20 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../eno_rust/Cargo.toml" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
-    <property name="settings.editor.selected.configurable" value="language.rust" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\rust-pj\eno_rust\src" />
+      <recent name="D:\rust-pj\eno_rust" />
+      <recent name="D:\rust-pj\eno_rust\src\eno_rust" />
       <recent name="D:\rust-pj\EnoRust\src" />
       <recent name="D:\rust-pj\EnoRust\src\parser" />
-      <recent name="D:\rust-pj\EnoRust" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -256,7 +285,7 @@
       <option name="command" value="run" />
       <option name="nocapture" value="true" />
       <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$/../eno_rust" />
       <envs />
       <method v="2" />
     </configuration>
@@ -290,7 +319,7 @@
       <workItem from="1539428686148" duration="1040000" />
       <workItem from="1539676301779" duration="461000" />
       <workItem from="1539676782141" duration="86000" />
-      <workItem from="1539677129946" duration="3247000" />
+      <workItem from="1539677129946" duration="6204000" />
     </task>
     <task id="LOCAL-00001" summary="Tasks: Fix borrowing, regex match, debug">
       <created>1539078127180</created>
@@ -310,7 +339,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="249424000" />
+    <option name="totallyTimeSpent" value="252381000" />
   </component>
   <component name="TodoView" selected-index="4">
     <todo-panel id="selected-file">
@@ -354,6 +383,9 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$" />
+    </ignored-roots>
     <MESSAGE value="Tasks: Fix borrowing, regex match, debug" />
     <option name="LAST_COMMIT_MESSAGE" value="Tasks: Fix borrowing, regex match, debug" />
   </component>
@@ -373,13 +405,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/reporter.rs" />
-    <entry file="file://$PROJECT_DIR$/Cargo.toml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="7" column="21" selection-start-line="7" selection-start-column="21" selection-end-line="7" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/tokenization.rs" />
     <entry file="file://$USER_HOME$/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-1.0.5/src/re_unicode.rs">
       <provider selected="true" editor-type-id="text-editor">
@@ -420,13 +445,6 @@
       </provider>
     </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-i686-pc-windows-gnu/lib/rustlib/src/rust/src/liballoc/linked_list.rs" />
-    <entry file="file://$PROJECT_DIR$/src/lib.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/.rustup/toolchains/stable-i686-pc-windows-gnu/lib/rustlib/src/rust/src/libcore/option.rs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="211">
@@ -445,10 +463,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/grammar_regex.rs">
+    <entry file="file://$PROJECT_DIR$/../eno_rust/Cargo.toml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="293">
-          <caret line="49" column="41" selection-start-line="49" selection-start-column="41" selection-end-line="49" selection-end-column="41" />
+        <state relative-caret-position="51">
+          <caret line="3" column="19" selection-start-line="3" selection-start-column="19" selection-end-line="3" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../eno_rust/Cargo.lock">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="1" column="8" selection-start-line="1" selection-start-column="8" selection-end-line="1" selection-end-column="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/lib.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="8" selection-start-line="8" selection-end-line="8" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/grammar_regex.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="102">
+          <caret line="6" column="2" selection-start-line="6" selection-start-column="2" selection-end-line="6" selection-end-column="2" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/messages.rs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="78">
+          <caret line="209" column="12" selection-start-line="209" selection-start-column="12" selection-end-line="209" selection-end-column="12" />
         </state>
       </provider>
     </entry>
@@ -459,31 +505,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main.rs">
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/tokenizer.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="20" selection-start-line="6" selection-start-column="20" selection-end-line="6" selection-end-column="20" />
+        <state relative-caret-position="17017">
+          <caret line="1001" selection-start-line="1001" selection-end-line="1001" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/parser.rs">
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/parser.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="228">
-          <caret line="47" column="9" lean-forward="true" selection-start-line="47" selection-start-column="9" selection-end-line="47" selection-end-column="9" />
+        <state relative-caret-position="197">
+          <caret line="47" column="9" selection-start-line="47" selection-start-column="9" selection-end-line="47" selection-end-column="9" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/messages.rs">
+    <entry file="file://$PROJECT_DIR$/../eno_rust/src/main.rs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="109">
-          <caret line="209" column="12" selection-start-line="209" selection-start-column="12" selection-end-line="209" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/tokenizer.rs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="245">
-          <caret line="1004" column="17" lean-forward="true" selection-start-line="1004" selection-start-column="17" selection-end-line="1004" selection-end-column="17" />
+        <state relative-caret-position="187">
+          <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
         </state>
       </provider>
     </entry>

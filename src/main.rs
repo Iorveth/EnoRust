@@ -1,4 +1,4 @@
-extern crate EnoRust;
+extern crate eno_rust;
 #[macro_use]
 extern crate runtime_fmt;
 //use std::fs::File;
@@ -9,5 +9,5 @@ fn main() {
     let input = "Greeting: Hello World!";
     let locale = "en";
     let zero_indexing = false;
-    EnoRust::parser::parse(input, locale, zero_indexing);
+    eno_rust::parser::parse(input, locale, zero_indexing);
 }

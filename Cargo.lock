@@ -1,17 +1,17 @@
 [[package]]
-name = "EnoRust"
-version = "0.1.0"
-dependencies = [
- "regex 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
- "runtime-fmt 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
 name = "aho-corasick"
 version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "memchr 2.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "eno_rust"
+version = "0.1.0"
+dependencies = [
+ "regex 1.0.5 (registry+https://github.com/rust-lang/crates.io-index)",
+ "runtime-fmt 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
