@@ -2,8 +2,8 @@ use messages::*;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 use tokenizer::*;
-#[derive(Clone)]
 
+#[derive(Clone, Debug)]
 pub enum ContextValues {
     Indexing(usize),
     Input(&'static str),
@@ -49,7 +49,7 @@ impl ContextValues {
     }
 }
 
-pub fn parse(input: &'static str, locale: &'static str, zero_indexing: bool) {
+pub fn parse(input: &'static str, locale: &'static str, zero_indexing: bool) -> Tokenizer {
     let mut context = HashMap::new();
     context.insert(
         "Indexing",
@@ -64,4 +64,5 @@ pub fn parse(input: &'static str, locale: &'static str, zero_indexing: bool) {
     //println!("{}", context.get("Input").unwrap().getStr().unwrap());
     let mut tokenizer = Tokenizer::new(&mut context);
     tokenizer.tokenize();
+    tokenizer
 }

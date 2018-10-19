@@ -3,7 +3,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use tokenizer::InstructionValues;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Messages {
     elements: Elements,
     tokenization: Tokenization,
@@ -12,7 +12,7 @@ pub struct Messages {
     validation: Validation,
     loaders: Loaders,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Elements {
     document: &'static str,
     empty: &'static str,
@@ -26,14 +26,14 @@ pub struct Elements {
 }
 
 pub const UNTERMINATED_ESCAPED_NAME: &'static str = "^\\s*(`+)(?!`)((?:(?!\\1).)+)$";
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Tokenization {
     invalid_line: &'static str,
     unterminated_block: &'static str,
     unterminated_escaped_name: &'static str,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Analysis {
     duplicate_fieldset_entry_name: &'static str,
     fieldset_entry_in_field: &'static str,
@@ -45,7 +45,7 @@ pub struct Analysis {
     missing_name_for_list_item: &'static str,
     section_hierarchy_layer_skip: &'static str,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Resolution {
     copying_block_into_fieldset: &'static str,
     copying_block_into_list: &'static str,
@@ -67,7 +67,7 @@ pub struct Resolution {
     multiple_templates_found: &'static str,
     template_not_found: &'static str,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Validation {
     exact_count_not_met: &'static str,
     excess_name: &'static str,
@@ -115,7 +115,7 @@ pub struct Validation {
     missing_list_item_value: &'static str,
     missing_section: &'static str,
 }
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Loaders {
     invalid_boolean: &'static str,
     invalid_color: &'static str,

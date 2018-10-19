@@ -1,7 +1,8 @@
 use grammar_regex::*;
 use messages::*;
 use parser::ContextValues;
-use regex::Regex;
+//use regex::Regex;
+use onig::*;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 pub trait Copy: Clone {}
@@ -14,7 +15,7 @@ pub struct Tokenizer {
     pub index: usize,
     pub instructions: LinkedList<HashMap<&'static str, InstructionValues>>,
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum InstructionValues {
     Index(usize),
     Line(usize),
@@ -30,7 +31,7 @@ pub enum InstructionValues {
     Length(usize),
     ContentRange(Vec<usize>),
 }
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum RangesValues {
     Name(Vec<usize>),
     NameOperator(Vec<usize>),
@@ -92,29 +93,30 @@ impl Tokenizer {
     pub fn tokenize(&mut self) {
         #[derive(Clone, Copy)]
         let mut ranges = HashMap::new();
+        let grammar_regex = GrammarRegex::initialize();
         loop {
-            let reg = Regex::new(REGEX).unwrap();
+            let reg = Regex::new(grammar_regex.regex.as_str()).unwrap();
             let r = reg.find(self.input);
             let capture = reg.captures(self.input).unwrap();
             let mut instruction = HashMap::new();
-            if (r.is_none()) || (r.unwrap().start() != self.index) {
+            if (r.is_none()) || (r.unwrap().0 != self.index) {
                 instruction = self.tokenize_error_context();
                 Tokenization::error_msg("invalid_line", &self.context, &instruction);
             }
             instruction.insert("Index", InstructionValues::Index(self.index));
             instruction.insert("Line", InstructionValues::Index(self.line));
             let mut block = false;
-            if capture.get(EMPTY_LINE_INDEX) != None {
+            if capture.at(EMPTY_LINE_INDEX) != None {
                 instruction.insert("Type", InstructionValues::Type("EMPTY_LINE"));
-            } else if capture.get(NAME_OPERATOR_INDEX).is_some() {
-                let unescaped_name = capture.get(NAME_UNESCAPED_INDEX).unwrap().as_str();
+            } else if capture.at(NAME_OPERATOR_INDEX).is_some() {
+                let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
 
                 if !(unescaped_name.is_empty()) {
                     instruction.insert("Name", InstructionValues::Name(unescaped_name));
                     let name_column =
-                        capture.get(NAME_UNESCAPED_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_UNESCAPED_INDEX).unwrap().0 - self.index;
                     let name_operator_column =
-                        capture.get(NAME_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_OPERATOR_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
@@ -135,20 +137,20 @@ impl Tokenizer {
                     );
                 } else {
                     ranges = HashMap::new();
-                    let escaped_name = capture.get(NAME_ESCAPED_INDEX).unwrap().as_str();
+                    let escaped_name = capture.at(NAME_ESCAPED_INDEX).unwrap();
                     instruction.insert("Name", InstructionValues::Name(escaped_name));
 
-                    let escape_operator = capture.get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX).unwrap();
+                    let escape_operator = capture.at(NAME_ESCAPE_BEGIN_OPERATOR_INDEX).unwrap();
                     let escape_begin_operator_column = capture
-                        .get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
+                        .pos(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
                         .unwrap()
-                        .start()
+                        .0
                         - self.index;
-                    let name_column = capture.get(NAME_ESCAPED_INDEX).unwrap().start() - self.index;
+                    let name_column = capture.pos(NAME_ESCAPED_INDEX).unwrap().0 - self.index;
                     let escape_end_operator_column =
-                        capture.get(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().0 - self.index;
                     let name_operator_column =
-                        capture.get(NAME_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_OPERATOR_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
@@ -157,7 +159,7 @@ impl Tokenizer {
                                 RangesValues::EscapeBeginOperator(
                                     (escape_begin_operator_column
                                         ..(escape_begin_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -166,7 +168,7 @@ impl Tokenizer {
                                 RangesValues::EscapeEndOperator(
                                     (escape_end_operator_column
                                         ..(escape_end_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -186,19 +188,19 @@ impl Tokenizer {
                         }),
                     );
                 }
-                let value = capture.get(FIELD_VALUE_INDEX).unwrap();
-                if capture.get(FIELD_VALUE_INDEX).is_some() {
+                let value = capture.at(FIELD_VALUE_INDEX).unwrap();
+                if capture.at(FIELD_VALUE_INDEX).is_some() {
                     instruction.insert("Type", InstructionValues::Type("FIELD"));
-                    instruction.insert("Value", InstructionValues::Value(value.as_str()));
+                    instruction.insert("Value", InstructionValues::Value(value));
 
-                    let value_column = capture.get(FIELD_VALUE_INDEX).unwrap().start() - self.index;
+                    let value_column = capture.pos(FIELD_VALUE_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
                             ranges.insert(
                                 "Value",
                                 RangesValues::Value(
-                                    (value_column..value_column + value.as_str().len()).collect(),
+                                    (value_column..value_column + value.len()).collect(),
                                 ),
                             );
                             ranges.clone()
@@ -207,10 +209,10 @@ impl Tokenizer {
                 } else {
                     instruction.insert("Type", InstructionValues::Type("Name"));
                 }
-            } else if capture.get(LIST_ITEM_OPERATOR_INDEX).is_some() {
+            } else if capture.at(LIST_ITEM_OPERATOR_INDEX).is_some() {
                 instruction.insert("Type", InstructionValues::Type("LIST_ITEM"));
                 let operator_column =
-                    capture.get(LIST_ITEM_OPERATOR_INDEX).unwrap().start() - self.index;
+                    capture.pos(LIST_ITEM_OPERATOR_INDEX).unwrap().0 - self.index;
                 instruction.insert(
                     "Ranges",
                     InstructionValues::Ranges({
@@ -223,32 +225,32 @@ impl Tokenizer {
                         ranges.clone()
                     }),
                 );
-                let value = capture.get(LIST_ITEM_VALUE_INDEX).unwrap();
-                instruction.insert("Value", InstructionValues::Value(value.as_str()));
-                if capture.get(LIST_ITEM_VALUE_INDEX).is_some() {
+                let value = capture.at(LIST_ITEM_VALUE_INDEX).unwrap();
+                instruction.insert("Value", InstructionValues::Value(value));
+                if capture.at(LIST_ITEM_VALUE_INDEX).is_some() {
                     let value_column =
-                        capture.get(LIST_ITEM_VALUE_INDEX).unwrap().start() - self.index;
+                        capture.pos(LIST_ITEM_VALUE_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
                             ranges.insert(
                                 "Value",
                                 RangesValues::Value(
-                                    (value_column..(value_column + value.as_str().len())).collect(),
+                                    (value_column..(value_column + value.len())).collect(),
                                 ),
                             );
                             ranges.clone()
                         }),
                     );
                 }
-            } else if capture.get(FIELDSET_ENTRY_OPERATOR_INDEX).is_some() {
-                let unescaped_name = capture.get(NAME_UNESCAPED_INDEX).unwrap();
-                if capture.get(NAME_UNESCAPED_INDEX).is_some() {
-                    instruction.insert("Name", InstructionValues::Name(unescaped_name.as_str()));
+            } else if capture.at(FIELDSET_ENTRY_OPERATOR_INDEX).is_some() {
+                let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
+                if capture.at(NAME_UNESCAPED_INDEX).is_some() {
+                    instruction.insert("Name", InstructionValues::Name(unescaped_name));
                     let name_column =
-                        capture.get(NAME_UNESCAPED_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_UNESCAPED_INDEX).unwrap().0 - self.index;
                     let entry_operator_column =
-                        capture.get(FIELDSET_ENTRY_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(FIELDSET_ENTRY_OPERATOR_INDEX).unwrap().0 - self.index;
 
                     instruction.insert(
                         "Ranges",
@@ -262,7 +264,7 @@ impl Tokenizer {
                             ranges.insert(
                                 "Name",
                                 RangesValues::Name(
-                                    (name_column..(name_column + unescaped_name.as_str().len()))
+                                    (name_column..(name_column + unescaped_name.len()))
                                         .collect(),
                                 ),
                             );
@@ -270,20 +272,20 @@ impl Tokenizer {
                         }),
                     );
                 } else {
-                    let escaped_name = capture.get(NAME_ESCAPED_INDEX).unwrap();
-                    instruction.insert("Name", InstructionValues::Name(escaped_name.as_str()));
+                    let escaped_name = capture.at(NAME_ESCAPED_INDEX).unwrap();
+                    instruction.insert("Name", InstructionValues::Name(escaped_name));
 
-                    let escape_operator = capture.get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX).unwrap();
+                    let escape_operator = capture.at(NAME_ESCAPE_BEGIN_OPERATOR_INDEX).unwrap();
                     let escape_begin_operator_column = capture
-                        .get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
+                        .pos(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
                         .unwrap()
-                        .start()
+                        .0
                         - self.index;
-                    let name_column = capture.get(NAME_ESCAPED_INDEX).unwrap().start() - self.index;
+                    let name_column = capture.pos(NAME_ESCAPED_INDEX).unwrap().0 - self.index;
                     let escape_end_operator_column =
-                        capture.get(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().0 - self.index;
                     let entry_operator_column =
-                        capture.get(FIELDSET_ENTRY_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(FIELDSET_ENTRY_OPERATOR_INDEX).unwrap().0 - self.index;
 
                     instruction.insert(
                         "Ranges",
@@ -293,7 +295,7 @@ impl Tokenizer {
                                 RangesValues::EscapeBeginOperator(
                                     (escape_begin_operator_column
                                         ..(escape_begin_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -302,7 +304,7 @@ impl Tokenizer {
                                 RangesValues::EscapeEndOperator(
                                     (escape_end_operator_column
                                         ..(escape_end_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -315,7 +317,7 @@ impl Tokenizer {
                             ranges.insert(
                                 "Name",
                                 RangesValues::Name(
-                                    (name_column..(name_column + escaped_name.as_str().len()))
+                                    (name_column..(name_column + escaped_name.len()))
                                         .collect(),
                                 ),
                             );
@@ -324,35 +326,35 @@ impl Tokenizer {
                     );
                 }
                 instruction.insert("Type", InstructionValues::Type("FIELDSET_ENTRY"));
-                let value = capture.get(FIELDSET_ENTRY_VALUE_INDEX).unwrap();
-                instruction.insert("Value", InstructionValues::Value(value.as_str()));
-                if capture.get(FIELDSET_ENTRY_VALUE_INDEX).is_some() {
+                let value = capture.at(FIELDSET_ENTRY_VALUE_INDEX).unwrap();
+                instruction.insert("Value", InstructionValues::Value(value));
+                if capture.at(FIELDSET_ENTRY_VALUE_INDEX).is_some() {
                     let value_column =
-                        capture.get(FIELDSET_ENTRY_VALUE_INDEX).unwrap().start() - self.index;
+                        capture.pos(FIELDSET_ENTRY_VALUE_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
                             ranges.insert(
                                 "Value",
                                 RangesValues::Value(
-                                    (value_column..(value_column + value.as_str().len())).collect(),
+                                    (value_column..(value_column + value.len())).collect(),
                                 ),
                             );
                             ranges.clone()
                         }),
                     );
                 }
-            } else if capture.get(LINE_CONTINUATION_OPERATOR_INDEX).is_some() {
+            } else if capture.at(LINE_CONTINUATION_OPERATOR_INDEX).is_some() {
                 instruction.insert("Separator", InstructionValues::Separator(" "));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
-                let value = capture.get(LINE_CONTINUATION_VALUE_INDEX).unwrap();
-                instruction.insert("Value", InstructionValues::Value(value.as_str()));
+                let value = capture.at(LINE_CONTINUATION_VALUE_INDEX).unwrap();
+                instruction.insert("Value", InstructionValues::Value(value));
 
                 let operator_column = capture
-                    .get(LINE_CONTINUATION_OPERATOR_INDEX)
+                    .pos(LINE_CONTINUATION_OPERATOR_INDEX)
                     .unwrap()
-                    .start() - self.index;
+                    .0 - self.index;
                 instruction.insert(
                     "Ranges",
                     InstructionValues::Ranges({
@@ -365,33 +367,33 @@ impl Tokenizer {
                         ranges.clone()
                     }),
                 );
-                if capture.get(LINE_CONTINUATION_VALUE_INDEX).is_some() {
+                if capture.at(LINE_CONTINUATION_VALUE_INDEX).is_some() {
                     let value_column =
-                        capture.get(LINE_CONTINUATION_VALUE_INDEX).unwrap().start() - self.index;
+                        capture.pos(LINE_CONTINUATION_VALUE_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
                             ranges.insert(
                                 "Value",
                                 RangesValues::Value(
-                                    (value_column..(value_column + value.as_str().len())).collect(),
+                                    (value_column..(value_column + value.len())).collect(),
                                 ),
                             );
                             ranges.clone()
                         }),
                     );
                 }
-            } else if capture.get(NEWLINE_CONTINUATION_OPERATOR_INDEX).is_some() {
+            } else if capture.at(NEWLINE_CONTINUATION_OPERATOR_INDEX).is_some() {
                 instruction.insert("Separator", InstructionValues::Separator("\n"));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
-                let value = capture.get(NEWLINE_CONTINUATION_VALUE_INDEX).unwrap();
-                instruction.insert("Value", InstructionValues::Value(value.as_str()));
+                let value = capture.at(NEWLINE_CONTINUATION_VALUE_INDEX).unwrap();
+                instruction.insert("Value", InstructionValues::Value(value));
 
                 let operator_column = capture
-                    .get(NEWLINE_CONTINUATION_OPERATOR_INDEX)
+                    .pos(NEWLINE_CONTINUATION_OPERATOR_INDEX)
                     .unwrap()
-                    .start() - self.index;
+                    .0 - self.index;
                 instruction.insert(
                     "Ranges",
                     InstructionValues::Ranges({
@@ -404,40 +406,40 @@ impl Tokenizer {
                         ranges.clone()
                     }),
                 );
-                if capture.get(NEWLINE_CONTINUATION_VALUE_INDEX).is_some() {
+                if capture.at(NEWLINE_CONTINUATION_VALUE_INDEX).is_some() {
                     let value_column = capture
-                        .get(NEWLINE_CONTINUATION_VALUE_INDEX)
+                        .pos(NEWLINE_CONTINUATION_VALUE_INDEX)
                         .unwrap()
-                        .start() - self.index;
+                        .0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
                             ranges.insert(
                                 "Value",
                                 RangesValues::Value(
-                                    (value_column..(value_column + value.as_str().len())).collect(),
+                                    (value_column..(value_column + value.len())).collect(),
                                 ),
                             );
                             ranges.clone()
                         }),
                     );
                 }
-            } else if capture.get(SECTION_HASHES_INDEX).is_some() {
-                let section_operator = capture.get(SECTION_HASHES_INDEX).unwrap();
+            } else if capture.at(SECTION_HASHES_INDEX).is_some() {
+                let section_operator = capture.at(SECTION_HASHES_INDEX).unwrap();
                 instruction.insert(
                     "Depth",
-                    InstructionValues::Depth(section_operator.as_str().len()),
+                    InstructionValues::Depth(section_operator.len()),
                 );
                 instruction.insert("Type", InstructionValues::Type("SECTION"));
                 let section_operator_column =
-                    capture.get(SECTION_HASHES_INDEX).unwrap().start() - self.index;
-                let unescaped_name = capture.get(SECTION_NAME_UNESCAPED_INDEX).unwrap();
+                    capture.pos(SECTION_HASHES_INDEX).unwrap().0 - self.index;
+                let unescaped_name = capture.at(SECTION_NAME_UNESCAPED_INDEX).unwrap();
 
-                if capture.get(SECTION_NAME_UNESCAPED_INDEX).is_some() {
-                    instruction.insert("Name", InstructionValues::Name(unescaped_name.as_str()));
+                if capture.pos(SECTION_NAME_UNESCAPED_INDEX).is_some() {
+                    instruction.insert("Name", InstructionValues::Name(unescaped_name));
                     let name_column =
-                        capture.get(SECTION_NAME_UNESCAPED_INDEX).unwrap().start() - self.index;
-                    let name_end_column = name_column + unescaped_name.as_str().len();
+                        capture.pos(SECTION_NAME_UNESCAPED_INDEX).unwrap().0 - self.index;
+                    let name_end_column = name_column + unescaped_name.len();
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
@@ -452,7 +454,7 @@ impl Tokenizer {
                                 RangesValues::LineContinuationOperator(
                                     (section_operator_column
                                         ..(section_operator_column
-                                            + section_operator.as_str().len()))
+                                        + section_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -460,25 +462,25 @@ impl Tokenizer {
                         }),
                     );
                 } else {
-                    let escaped_name = capture.get(SECTION_NAME_ESCAPED_INDEX).unwrap();
-                    instruction.insert("Name", InstructionValues::Name(escaped_name.as_str()));
+                    let escaped_name = capture.at(SECTION_NAME_ESCAPED_INDEX).unwrap();
+                    instruction.insert("Name", InstructionValues::Name(escaped_name));
 
                     let escape_operator = capture
-                        .get(SECTION_NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
+                        .at(SECTION_NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
                         .unwrap();
                     let escape_begin_operator_column = capture
-                        .get(SECTION_NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
+                        .pos(SECTION_NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
                         .unwrap()
-                        .start()
+                        .0
                         - self.index;
                     let name_column =
-                        capture.get(SECTION_NAME_ESCAPED_INDEX).unwrap().start() - self.index;
+                        capture.pos(SECTION_NAME_ESCAPED_INDEX).unwrap().0 - self.index;
                     let escape_end_operator_column = capture
-                        .get(SECTION_NAME_ESCAPE_END_OPERATOR_INDEX)
+                        .pos(SECTION_NAME_ESCAPE_END_OPERATOR_INDEX)
                         .unwrap()
-                        .start() - self.index;
+                        .0 - self.index;
                     let name_end_column =
-                        escape_end_operator_column + escape_operator.as_str().len();
+                        escape_end_operator_column + escape_operator.len();
 
                     instruction.insert(
                         "Ranges",
@@ -488,7 +490,7 @@ impl Tokenizer {
                                 RangesValues::EscapeBeginOperator(
                                     (escape_begin_operator_column
                                         ..(escape_begin_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -497,14 +499,14 @@ impl Tokenizer {
                                 RangesValues::EscapeEndOperator(
                                     (escape_end_operator_column
                                         ..(escape_end_operator_column
-                                            + escape_operator.as_str().len()))
+                                        + escape_operator.len()))
                                         .collect(),
                                 ),
                             );
                             ranges.insert(
                                 "Name",
                                 RangesValues::Name(
-                                    (name_column..(name_column + escaped_name.as_str().len()))
+                                    (name_column..(name_column + escaped_name.len()))
                                         .collect(),
                                 ),
                             );
@@ -513,7 +515,7 @@ impl Tokenizer {
                                 RangesValues::SectionOperator(
                                     (section_operator_column
                                         ..(section_operator_column
-                                            + section_operator.as_str().len()))
+                                        + section_operator.len()))
                                         .collect(),
                                 ),
                             );
@@ -521,18 +523,18 @@ impl Tokenizer {
                         }),
                     );
                 }
-                let template = capture.get(SECTION_TEMPLATE_INDEX).unwrap();
+                let template = capture.at(SECTION_TEMPLATE_INDEX).unwrap();
 
-                if capture.get(SECTION_TEMPLATE_INDEX).is_some() {
-                    instruction.insert("Template", InstructionValues::Template(template.as_str()));
+                if capture.at(SECTION_TEMPLATE_INDEX).is_some() {
+                    instruction.insert("Template", InstructionValues::Template(template));
 
-                    let copy_operator = capture.get(SECTION_COPY_OPERATOR_INDEX).unwrap();
+                    let copy_operator = capture.at(SECTION_COPY_OPERATOR_INDEX).unwrap();
                     let copy_operator_column =
-                        capture.get(SECTION_COPY_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(SECTION_COPY_OPERATOR_INDEX).unwrap().0 - self.index;
                     let template_column =
-                        capture.get(SECTION_TEMPLATE_INDEX).unwrap().start() - self.index;
+                        capture.pos(SECTION_TEMPLATE_INDEX).unwrap().0 - self.index;
 
-                    if copy_operator.as_str() == "<" {
+                    if copy_operator == "<" {
                         instruction.insert("DeepCopy", InstructionValues::DeepCopy(false));
                         instruction.insert(
                             "Ranges",
@@ -569,7 +571,7 @@ impl Tokenizer {
                             ranges.insert(
                                 "Template",
                                 RangesValues::Template(
-                                    (template_column..(template_column + template.as_str().len()))
+                                    (template_column..(template_column + template.len()))
                                         .collect(),
                                 ),
                             );
@@ -577,18 +579,18 @@ impl Tokenizer {
                         }),
                     );
                 }
-            } else if capture.get(BLOCK_DASHES_INDEX).is_some() {
-                let operator = capture.get(BLOCK_DASHES_INDEX).unwrap();
-                let name = capture.get(BLOCK_NAME_INDEX).unwrap();
+            } else if capture.at(BLOCK_DASHES_INDEX).is_some() {
+                let operator = capture.at(BLOCK_DASHES_INDEX).unwrap();
+                let name = capture.at(BLOCK_NAME_INDEX).unwrap();
 
-                instruction.insert("Name", InstructionValues::Name(name.as_str()));
+                instruction.insert("Name", InstructionValues::Name(name));
                 instruction.insert("Type", InstructionValues::Type("BLOCK"));
 
-                let operator_column = capture.get(BLOCK_DASHES_INDEX).unwrap().start() - self.index;
-                let name_column = capture.get(BLOCK_NAME_INDEX).unwrap().start() - self.index;
+                let operator_column = capture.pos(BLOCK_DASHES_INDEX).unwrap().0 - self.index;
+                let name_column = capture.pos(BLOCK_NAME_INDEX).unwrap().0 - self.index;
                 instruction.insert(
                     "Length",
-                    InstructionValues::Length(r.unwrap().end() - self.index),
+                    InstructionValues::Length(r.unwrap().1 - self.index),
                 );
 
                 instruction.insert(
@@ -597,7 +599,7 @@ impl Tokenizer {
                         ranges.insert(
                             "Template",
                             RangesValues::Template(
-                                (operator_column..(operator_column + operator.as_str().len()))
+                                (operator_column..(operator_column + operator.len()))
                                     .collect(),
                             ),
                         );
@@ -611,14 +613,14 @@ impl Tokenizer {
                         ranges.insert(
                             "BlockOperator",
                             RangesValues::BlockOperator(
-                                (operator_column..(operator_column + operator.as_str().len()))
+                                (operator_column..(operator_column + operator.len()))
                                     .collect(),
                             ),
                         );
                         ranges.insert(
                             "Name",
                             RangesValues::Name(
-                                (name_column..(name_column + name.as_str().len())).collect(),
+                                (name_column..(name_column + name.len())).collect(),
                             ),
                         );
                         ranges.clone()
@@ -631,7 +633,7 @@ impl Tokenizer {
                     .unwrap()
                     .push_back(instruction.clone());
 
-                self.index = r.unwrap().end();
+                self.index = r.unwrap().1;
 
                 let terminator_str =
                     "\\n[^\\S\\n]*({operator})[^\\S\\n]*({re.escape(name)})[^\\S\\n]*(?=\\n|$)";
@@ -666,35 +668,35 @@ impl Tokenizer {
                         if (&self.input[self.index..end_of_block_index])
                             .find("\n")
                             .is_none()
-                        {
-                            self.instructions.push_back({
-                                instr.insert("Index", InstructionValues::Index(self.index));
-                                instr.insert(
-                                    "Length",
-                                    InstructionValues::Length(end_of_block_index - self.index),
-                                );
-                                instr.insert("Line", InstructionValues::Line(self.line));
-                                instr.insert(
-                                    "Rages",
-                                    InstructionValues::Ranges({
-                                        ranges.insert(
-                                            "Content",
-                                            RangesValues::Content(
-                                                (0..(end_of_block_index - self.index)).collect(),
-                                            ),
-                                        );
-                                        ranges.clone()
-                                    }),
-                                );
-                                instr.insert("Type", InstructionValues::Type("BLOCK_CONTENT"));
-                                instr.clone()
-                            });
+                            {
+                                self.instructions.push_back({
+                                    instr.insert("Index", InstructionValues::Index(self.index));
+                                    instr.insert(
+                                        "Length",
+                                        InstructionValues::Length(end_of_block_index - self.index),
+                                    );
+                                    instr.insert("Line", InstructionValues::Line(self.line));
+                                    instr.insert(
+                                        "Rages",
+                                        InstructionValues::Ranges({
+                                            ranges.insert(
+                                                "Content",
+                                                RangesValues::Content(
+                                                    (0..(end_of_block_index - self.index)).collect(),
+                                                ),
+                                            );
+                                            ranges.clone()
+                                        }),
+                                    );
+                                    instr.insert("Type", InstructionValues::Type("BLOCK_CONTENT"));
+                                    instr.clone()
+                                });
 
-                            self.index = end_of_block_index + 1;
-                            self.line += 1;
+                                self.index = end_of_block_index + 1;
+                                self.line += 1;
 
-                            break;
-                        } else {
+                                break;
+                            } else {
                             self.instructions.push_back({
                                 instr.insert("Index", InstructionValues::Index(self.index));
                                 instr.insert(
@@ -736,16 +738,16 @@ impl Tokenizer {
                         ranges.insert(
                             "BlockOperator",
                             RangesValues::BlockOperator(
-                                ((terminator_capture.get(1).unwrap().start() - self.index)
-                                    ..(terminator_capture.get(1).unwrap().end() - self.index))
+                                ((terminator_capture.pos(1).unwrap().0 - self.index)
+                                    ..(terminator_capture.pos(1).unwrap().1 - self.index))
                                     .collect(),
                             ),
                         );
                         ranges.insert(
                             "Name",
                             RangesValues::BlockOperator(
-                                ((terminator_capture.get(2).unwrap().start() - self.index)
-                                    ..(terminator_capture.get(2).unwrap().end() - self.index))
+                                ((terminator_capture.pos(2).unwrap().0 - self.index)
+                                    ..(terminator_capture.pos(2).unwrap().1 - self.index))
                                     .collect(),
                             ),
                         );
@@ -760,15 +762,15 @@ impl Tokenizer {
                 self.line += 1;
 
                 block = true;
-            } else if capture.get(COMMENT_OPERATOR_INDEX).is_some() {
-                let comment = capture.get(COMMENT_TEXT_INDEX);
+            } else if capture.at(COMMENT_OPERATOR_INDEX).is_some() {
+                let comment = capture.at(COMMENT_TEXT_INDEX);
                 let comment_operator_column =
-                    capture.get(COMMENT_OPERATOR_INDEX).unwrap().start() - self.index;
+                    capture.pos(COMMENT_OPERATOR_INDEX).unwrap().0 - self.index;
 
                 instruction.insert("Type", InstructionValues::Type("COMMENT"));
                 instruction.insert(
                     "Comment",
-                    InstructionValues::Comment(comment.unwrap().as_str()),
+                    InstructionValues::Comment(comment.unwrap()),
                 );
                 instruction.insert(
                     "Ranges",
@@ -785,7 +787,7 @@ impl Tokenizer {
 
                 if comment.is_some() {
                     let comment_column =
-                        capture.get(COMMENT_TEXT_INDEX).unwrap().start() - self.index;
+                        capture.pos(COMMENT_TEXT_INDEX).unwrap().0 - self.index;
                     instruction.insert(
                         "Ranges",
                         InstructionValues::Ranges({
@@ -793,7 +795,7 @@ impl Tokenizer {
                                 "Comment",
                                 RangesValues::Comment(
                                     (comment_column
-                                        ..(comment_column + comment.unwrap().as_str().len()))
+                                        ..(comment_column + comment.unwrap().len()))
                                         .collect(),
                                 ),
                             );
@@ -801,21 +803,21 @@ impl Tokenizer {
                         }),
                     );
                 }
-            } else if capture.get(COPY_OPERATOR_INDEX).is_some() {
-                let operator = capture.get(COPY_OPERATOR_INDEX);
-                let template = capture.get(TEMPLATE_INDEX);
-                let unescaped_name = capture.get(NAME_UNESCAPED_INDEX);
+            } else if capture.at(COPY_OPERATOR_INDEX).is_some() {
+                let operator = capture.at(COPY_OPERATOR_INDEX);
+                let template = capture.at(TEMPLATE_INDEX);
+                let unescaped_name = capture.at(NAME_UNESCAPED_INDEX);
 
                 if unescaped_name.is_some() {
                     instruction.insert(
                         "Name",
-                        InstructionValues::Name(unescaped_name.unwrap().as_str()),
+                        InstructionValues::Name(unescaped_name.unwrap()),
                     );
 
                     let name_column =
-                        capture.get(NAME_UNESCAPED_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_UNESCAPED_INDEX).unwrap().0 - self.index;
                     let operator_column =
-                        capture.get(COPY_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(COPY_OPERATOR_INDEX).unwrap().0 - self.index;
 
                     instruction.insert(
                         "Ranges",
@@ -824,7 +826,7 @@ impl Tokenizer {
                                 "CopyOperator",
                                 RangesValues::CopyOperator(
                                     (operator_column
-                                        ..operator_column + operator.unwrap().as_str().len())
+                                        ..operator_column + operator.unwrap().len())
                                         .collect(),
                                 ),
                             );
@@ -832,7 +834,7 @@ impl Tokenizer {
                                 "Name",
                                 RangesValues::Name(
                                     (name_column
-                                        ..name_column + unescaped_name.unwrap().as_str().len())
+                                        ..name_column + unescaped_name.unwrap().len())
                                         .collect(),
                                 ),
                             );
@@ -840,23 +842,23 @@ impl Tokenizer {
                         }),
                     );
                 } else {
-                    let escaped_name = capture.get(NAME_ESCAPED_INDEX);
+                    let escaped_name = capture.at(NAME_ESCAPED_INDEX);
                     instruction.insert(
                         "Name",
-                        InstructionValues::Name(escaped_name.unwrap().as_str()),
+                        InstructionValues::Name(escaped_name.unwrap()),
                     );
 
-                    let escape_operator = capture.get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX);
+                    let escape_operator = capture.at(NAME_ESCAPE_BEGIN_OPERATOR_INDEX);
                     let escape_begin_operator_column = capture
-                        .get(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
+                        .pos(NAME_ESCAPE_BEGIN_OPERATOR_INDEX)
                         .unwrap()
-                        .start()
+                        .0
                         - self.index;
-                    let name_column = capture.get(NAME_ESCAPED_INDEX).unwrap().start() - self.index;
+                    let name_column = capture.pos(NAME_ESCAPED_INDEX).unwrap().0 - self.index;
                     let escape_end_operator_column =
-                        capture.get(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(NAME_ESCAPE_END_OPERATOR_INDEX).unwrap().0 - self.index;
                     let operator_column =
-                        capture.get(COPY_OPERATOR_INDEX).unwrap().start() - self.index;
+                        capture.pos(COPY_OPERATOR_INDEX).unwrap().0 - self.index;
 
                     instruction.insert(
                         "Ranges",
@@ -865,7 +867,7 @@ impl Tokenizer {
                                 "CopyOperator",
                                 RangesValues::CopyOperator(
                                     (operator_column
-                                        ..(operator_column + operator.unwrap().as_str().len()))
+                                        ..(operator_column + operator.unwrap().len()))
                                         .collect(),
                                 ),
                             );
@@ -874,7 +876,7 @@ impl Tokenizer {
                                 RangesValues::EscapeBeginOperator(
                                     (escape_begin_operator_column
                                         ..(escape_begin_operator_column
-                                            + escape_operator.unwrap().as_str().len()))
+                                        + escape_operator.unwrap().len()))
                                         .collect(),
                                 ),
                             );
@@ -883,7 +885,7 @@ impl Tokenizer {
                                 RangesValues::EscapeEndOperator(
                                     (escape_end_operator_column
                                         ..(escape_end_operator_column
-                                            + escape_operator.unwrap().as_str().len()))
+                                        + escape_operator.unwrap().len()))
                                         .collect(),
                                 ),
                             );
@@ -891,7 +893,7 @@ impl Tokenizer {
                                 "Name",
                                 RangesValues::Name(
                                     (name_column
-                                        ..(name_column + escaped_name.unwrap().as_str().len()))
+                                        ..(name_column + escaped_name.unwrap().len()))
                                         .collect(),
                                 ),
                             );
@@ -902,11 +904,11 @@ impl Tokenizer {
 
                 instruction.insert(
                     "Template",
-                    InstructionValues::Template(template.unwrap().as_str()),
+                    InstructionValues::Template(template.unwrap()),
                 );
                 instruction.insert("Type", InstructionValues::Type("NAME"));
 
-                let template_column = capture.get(TEMPLATE_INDEX).unwrap().start() - self.index;
+                let template_column = capture.pos(TEMPLATE_INDEX).unwrap().0 - self.index;
                 instruction.insert(
                     "Ranges",
                     InstructionValues::Ranges({
@@ -914,7 +916,7 @@ impl Tokenizer {
                             "Template",
                             RangesValues::Template(
                                 (template_column
-                                    ..template_column + template.unwrap().as_str().len())
+                                    ..template_column + template.unwrap().len())
                                     .collect(),
                             ),
                         );
@@ -925,9 +927,9 @@ impl Tokenizer {
                 if !(block) {
                     instruction.insert(
                         "Length",
-                        InstructionValues::Length(r.unwrap().end() - self.index),
+                        InstructionValues::Length(r.unwrap().1 - self.index),
                     );
-                    self.index = r.unwrap().end() + 1;
+                    self.index = r.unwrap().1 + 1;
                     self.context
                         .get_mut("Instructions")
                         .unwrap()
@@ -941,21 +943,21 @@ impl Tokenizer {
                 if self.index >= self.input.len() {
                     if self.input.len() > 0
                         && self.input.chars().nth(self.input.len() - 1).unwrap() == '\n'
-                    {
-                        self.context
-                            .get_mut("Instructions")
-                            .unwrap()
-                            .get_instruction_mut()
-                            .unwrap()
-                            .push_back({
-                                instr.insert("Index", InstructionValues::Index(self.input.len()));
-                                instr.insert("Length", InstructionValues::Length(0));
-                                instr.insert("Line", InstructionValues::Line(self.line));
-                                instr.insert("Type", InstructionValues::Type("EMPTY_LINE"));
-                                instr.clone()
-                            });
-                        break;
-                    }
+                        {
+                            self.context
+                                .get_mut("Instructions")
+                                .unwrap()
+                                .get_instruction_mut()
+                                .unwrap()
+                                .push_back({
+                                    instr.insert("Index", InstructionValues::Index(self.input.len()));
+                                    instr.insert("Length", InstructionValues::Length(0));
+                                    instr.insert("Line", InstructionValues::Line(self.line));
+                                    instr.insert("Type", InstructionValues::Type("EMPTY_LINE"));
+                                    instr.clone()
+                                });
+                            break;
+                        }
                 }
             }
         }

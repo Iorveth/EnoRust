@@ -5,4 +5,5 @@ authors = ["arsen"]
 
 [dependencies]
 regex = "1"
+onig = "4.2"
 runtime-fmt = "0.3.0"

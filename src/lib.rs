@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate runtime_fmt;
+extern crate onig;
 extern crate regex;
 
 pub mod grammar_regex;
