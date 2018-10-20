@@ -71,31 +71,7 @@ pub const FIELDSET_ENTRY_VALUE_INDEX: usize = 26;
 pub const COPY_OPERATOR_INDEX: usize = 27;
 pub const TEMPLATE_INDEX: usize = 28;
 
-
-pub struct GrammarRegex {
-    pub new_line_continuation: String,
-    pub line_continuation: String,
-    pub continuation: String,
-    pub comment: String,
-    pub list_item: String,
-    pub  block: String,
-    pub section_name: String,
-    pub section_name_escaped: String,
-    pub  section_template: String,
-    pub section: String,
-    pub early_determined: String,
-    pub  name_escaped: String,
-    pub  name: String,
-    pub  field_or_name: String,
-    pub  field_set_entry: String,
-    pub  copy: String,
-    pub  late_determined: String,
-    pub  not_empty: String,
-    pub  regex: String
-}
-
-impl GrammarRegex{
-    pub fn initialize() -> GrammarRegex{
+    pub fn get_regex() -> String{
         // | Value
         let new_line_continuation = format!("(\\|)[^\\S\\n]*{}", OPTIONAL);
         // \ Value
@@ -130,10 +106,5 @@ impl GrammarRegex{
         let late_determined = format!("{}\\s*(?:{}|{}|{})", name, field_or_name,field_set_entry,copy);
         let not_empty = format!("(?:{}|{})", early_determined, late_determined);
 
-        let regex = format!("[^\\S\\n]*(?:{}|{})[^\\S\\n]*(?=\\n|$)", EMPTY, not_empty);
-        GrammarRegex { new_line_continuation, line_continuation, continuation, comment, list_item, block,
-            section_name_escaped, section_template, section_name, section, early_determined, name_escaped, name,
-            field_or_name, field_set_entry, copy, late_determined, not_empty, regex
-        }
+        format!("[^\\S\\n]*(?:{}|{})[^\\S\\n]*(?=\\n|$)", EMPTY, not_empty)
     }
-}

@@ -1,13 +1,12 @@
 use grammar_regex::*;
 use messages::*;
 use parser::ContextValues;
-//use regex::Regex;
-use onig::*;
+use onig;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 pub trait Copy: Clone {}
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Tokenizer {
     pub input: &'static str,
     pub context: HashMap<&'static str, ContextValues>,
@@ -93,9 +92,8 @@ impl Tokenizer {
     pub fn tokenize(&mut self) {
         #[derive(Clone, Copy)]
         let mut ranges = HashMap::new();
-        let grammar_regex = GrammarRegex::initialize();
         loop {
-            let reg = Regex::new(grammar_regex.regex.as_str()).unwrap();
+            let reg = onig::Regex::new(get_regex().as_str()).unwrap();
             let r = reg.find(self.input);
             let capture = reg.captures(self.input).unwrap();
             let mut instruction = HashMap::new();
@@ -637,10 +635,10 @@ impl Tokenizer {
 
                 let terminator_str =
                     "\\n[^\\S\\n]*({operator})[^\\S\\n]*({re.escape(name)})[^\\S\\n]*(?=\\n|$)";
-                let terminator_re = Regex::new(terminator_str).unwrap();
-                let terminator_match = terminator_re.find_at(self.input, self.index).unwrap();
+                let terminator_re = onig::Regex::new(terminator_str).unwrap();
                 //TODO start match from self.index
-                let terminator_capture = terminator_re.captures(self.input).unwrap();
+                let terminator_match = terminator_re.find_at(self.input, self.index).unwrap();
+                let terminator_capture = terminator_re.captures_at(self.input, self.index).unwrap();
 
                 self.index += 1;
                 self.line += 1;
@@ -650,7 +648,7 @@ impl Tokenizer {
                     Tokenization::error_msg("unterminated_block", &self.context, &instruction);
                 }
 
-                let end_of_block_index = terminator_match.start();
+                let end_of_block_index = terminator_match.0;
                 if end_of_block_index != self.index - 1 {
                     let mut instr = HashMap::new();
                     instruction.insert(
@@ -729,7 +727,7 @@ impl Tokenizer {
                 instruction.insert("Index", InstructionValues::Index(self.index));
                 instruction.insert(
                     "Length",
-                    InstructionValues::Length(terminator_match.end() - self.index),
+                    InstructionValues::Length(terminator_match.1 - self.index),
                 );
                 instruction.insert("Line", InstructionValues::Line(self.line));
                 instruction.insert(
@@ -758,7 +756,7 @@ impl Tokenizer {
 
                 self.instructions.push_back(instruction);
 
-                self.index = terminator_match.end() + 1;
+                self.index = terminator_match.1 + 1;
                 self.line += 1;
 
                 block = true;

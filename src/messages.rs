@@ -1,5 +1,5 @@
 use parser::ContextValues;
-use regex::Regex;
+use onig;
 use std::collections::HashMap;
 use tokenizer::InstructionValues;
 
@@ -159,7 +159,7 @@ impl Tokenization {
                         ..(instruction.get("Index").unwrap().get_numeric().unwrap()
                             + instruction.get("Length").unwrap().get_numeric().unwrap())];
                 //match() instead of search()
-                let reg = Regex::new(UNTERMINATED_ESCAPED_NAME).unwrap().find(line);
+                let reg = onig::Regex::new(UNTERMINATED_ESCAPED_NAME).unwrap().find(line);
 
                 if reg.is_some() {
                     return unterminated_escaped_name(context, instruction);
