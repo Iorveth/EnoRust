@@ -2,6 +2,7 @@ use grammar_regex::*;
 use messages::*;
 use parser::ContextValues;
 use onig;
+use regex;
 use std::collections::HashMap;
 use std::collections::LinkedList;
 pub trait Copy: Clone {}
@@ -90,12 +91,14 @@ impl Tokenizer {
         k
     }
     pub fn tokenize(&mut self) {
-        #[derive(Clone, Copy)]
         let mut ranges = HashMap::new();
+        let mut block;
         loop {
             let reg = onig::Regex::new(get_regex().as_str()).unwrap();
             let r = reg.find(self.input);
             let capture = reg.captures(self.input).unwrap();
+            println!("{:?}", capture);
+            println!("{:?}", r);
             let mut instruction = HashMap::new();
             if (r.is_none()) || (r.unwrap().0 != self.index) {
                 instruction = self.tokenize_error_context();
@@ -103,10 +106,12 @@ impl Tokenizer {
             }
             instruction.insert("Index", InstructionValues::Index(self.index));
             instruction.insert("Line", InstructionValues::Index(self.line));
-            let mut block = false;
-            if capture.at(EMPTY_LINE_INDEX) != None {
+            block = false;
+
+            if capture.at(EMPTY_LINE_INDEX).is_some() {
                 instruction.insert("Type", InstructionValues::Type("EMPTY_LINE"));
             } else if capture.at(NAME_OPERATOR_INDEX).is_some() {
+                //println!("Hui");
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
 
                 if !(unescaped_name.is_empty()) {
@@ -208,6 +213,7 @@ impl Tokenizer {
                     instruction.insert("Type", InstructionValues::Type("Name"));
                 }
             } else if capture.at(LIST_ITEM_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 instruction.insert("Type", InstructionValues::Type("LIST_ITEM"));
                 let operator_column =
                     capture.pos(LIST_ITEM_OPERATOR_INDEX).unwrap().0 - self.index;
@@ -242,6 +248,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(FIELDSET_ENTRY_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
                 if capture.at(NAME_UNESCAPED_INDEX).is_some() {
                     instruction.insert("Name", InstructionValues::Name(unescaped_name));
@@ -343,6 +350,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(LINE_CONTINUATION_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 instruction.insert("Separator", InstructionValues::Separator(" "));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
@@ -382,6 +390,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(NEWLINE_CONTINUATION_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 instruction.insert("Separator", InstructionValues::Separator("\n"));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
@@ -423,6 +432,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(SECTION_HASHES_INDEX).is_some() {
+                println!("Hui");
                 let section_operator = capture.at(SECTION_HASHES_INDEX).unwrap();
                 instruction.insert(
                     "Depth",
@@ -477,8 +487,8 @@ impl Tokenizer {
                         .pos(SECTION_NAME_ESCAPE_END_OPERATOR_INDEX)
                         .unwrap()
                         .0 - self.index;
-                    let name_end_column =
-                        escape_end_operator_column + escape_operator.len();
+                    //let name_end_column =
+                     //   escape_end_operator_column + escape_operator.len();
 
                     instruction.insert(
                         "Ranges",
@@ -578,6 +588,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(BLOCK_DASHES_INDEX).is_some() {
+                println!("Hui");
                 let operator = capture.at(BLOCK_DASHES_INDEX).unwrap();
                 let name = capture.at(BLOCK_NAME_INDEX).unwrap();
 
@@ -633,9 +644,8 @@ impl Tokenizer {
 
                 self.index = r.unwrap().1;
 
-                let terminator_str =
-                    "\\n[^\\S\\n]*({operator})[^\\S\\n]*({re.escape(name)})[^\\S\\n]*(?=\\n|$)";
-                let terminator_re = onig::Regex::new(terminator_str).unwrap();
+                let terminator_str = format!("\\n[^\\S\\n]*({})[^\\S\\n]*({})[^\\S\\n]*(?=\\n|$)",operator, regex::escape(name));
+                let terminator_re = onig::Regex::new(terminator_str.as_str()).unwrap();
                 //TODO start match from self.index
                 let terminator_match = terminator_re.find_at(self.input, self.index).unwrap();
                 let terminator_capture = terminator_re.captures_at(self.input, self.index).unwrap();
@@ -761,6 +771,7 @@ impl Tokenizer {
 
                 block = true;
             } else if capture.at(COMMENT_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 let comment = capture.at(COMMENT_TEXT_INDEX);
                 let comment_operator_column =
                     capture.pos(COMMENT_OPERATOR_INDEX).unwrap().0 - self.index;
@@ -802,6 +813,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(COPY_OPERATOR_INDEX).is_some() {
+                println!("Hui");
                 let operator = capture.at(COPY_OPERATOR_INDEX);
                 let template = capture.at(TEMPLATE_INDEX);
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX);

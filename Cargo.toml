@@ -6,4 +6,3 @@ authors = ["arsen"]
 [dependencies]
 regex = "1"
 onig = { git = "https://github.com/Iorveth/rust-onig" }
-runtime-fmt = "0.3.0"
