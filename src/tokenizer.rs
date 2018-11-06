@@ -1,3 +1,4 @@
+use env_logger;
 use grammar_regex::*;
 use messages::*;
 use parser::ContextValues;
@@ -91,6 +92,8 @@ impl Tokenizer {
         k
     }
     pub fn tokenize(&mut self) {
+        env_logger::init();
+        info!("starting up");
         let mut ranges = HashMap::new();
         let mut block;
         loop {
@@ -111,7 +114,7 @@ impl Tokenizer {
             if capture.at(EMPTY_LINE_INDEX).is_some() {
                 instruction.insert("Type", InstructionValues::Type("EMPTY_LINE"));
             } else if capture.at(NAME_OPERATOR_INDEX).is_some() {
-                //println!("Hui");
+                info!("moved here");
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
 
                 if !(unescaped_name.is_empty()) {
@@ -213,7 +216,7 @@ impl Tokenizer {
                     instruction.insert("Type", InstructionValues::Type("Name"));
                 }
             } else if capture.at(LIST_ITEM_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 instruction.insert("Type", InstructionValues::Type("LIST_ITEM"));
                 let operator_column =
                     capture.pos(LIST_ITEM_OPERATOR_INDEX).unwrap().0 - self.index;
@@ -248,7 +251,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(FIELDSET_ENTRY_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX).unwrap();
                 if capture.at(NAME_UNESCAPED_INDEX).is_some() {
                     instruction.insert("Name", InstructionValues::Name(unescaped_name));
@@ -350,7 +353,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(LINE_CONTINUATION_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 instruction.insert("Separator", InstructionValues::Separator(" "));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
@@ -390,7 +393,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(NEWLINE_CONTINUATION_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 instruction.insert("Separator", InstructionValues::Separator("\n"));
                 instruction.insert("Type", InstructionValues::Type("CONTINUATION"));
 
@@ -432,7 +435,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(SECTION_HASHES_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 let section_operator = capture.at(SECTION_HASHES_INDEX).unwrap();
                 instruction.insert(
                     "Depth",
@@ -487,8 +490,7 @@ impl Tokenizer {
                         .pos(SECTION_NAME_ESCAPE_END_OPERATOR_INDEX)
                         .unwrap()
                         .0 - self.index;
-                    //let name_end_column =
-                     //   escape_end_operator_column + escape_operator.len();
+                    let _name_end_column = escape_end_operator_column + escape_operator.len();
 
                     instruction.insert(
                         "Ranges",
@@ -588,7 +590,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(BLOCK_DASHES_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 let operator = capture.at(BLOCK_DASHES_INDEX).unwrap();
                 let name = capture.at(BLOCK_NAME_INDEX).unwrap();
 
@@ -771,7 +773,7 @@ impl Tokenizer {
 
                 block = true;
             } else if capture.at(COMMENT_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 let comment = capture.at(COMMENT_TEXT_INDEX);
                 let comment_operator_column =
                     capture.pos(COMMENT_OPERATOR_INDEX).unwrap().0 - self.index;
@@ -813,7 +815,7 @@ impl Tokenizer {
                     );
                 }
             } else if capture.at(COPY_OPERATOR_INDEX).is_some() {
-                println!("Hui");
+                info!("moved here");
                 let operator = capture.at(COPY_OPERATOR_INDEX);
                 let template = capture.at(TEMPLATE_INDEX);
                 let unescaped_name = capture.at(NAME_UNESCAPED_INDEX);
