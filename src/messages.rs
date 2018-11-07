@@ -158,24 +158,37 @@ impl Tokenization {
                     [*instruction.get("Index").unwrap().get_numeric().unwrap()
                         ..(instruction.get("Index").unwrap().get_numeric().unwrap()
                             + instruction.get("Length").unwrap().get_numeric().unwrap())];
+                //match() instead of search()
                 let reg = onig::Regex::new(UNTERMINATED_ESCAPED_NAME).unwrap().find(line);
 
                 if reg.is_some() {
                     return unterminated_escaped_name(context, instruction);
                 }
-                return format!(
-                    "Line {} does not follow any specified pattern.",
+                return rt_format!(
+                    context
+                        .get("Messages")
+                        .unwrap()
+                        .get_messages()
+                        .unwrap()
+                        .tokenization
+                        .invalid_line,
                     (instruction.get("Line").unwrap().get_numeric().unwrap()
                         + context.get("Indexing").unwrap().get_indexing().unwrap())
-                );
+                ).unwrap();
             }
             "unterminated_escaped_name" => unterminated_escaped_name(context, instruction),
-            "unterminated_block" => format!(
-                "The block '{}' starting in line {} is not terminated until the end of the document.",
+            "unterminated_block" => rt_format!(
+                context
+                    .get("Messages")
+                    .unwrap()
+                    .get_messages()
+                    .unwrap()
+                    .tokenization
+                    .unterminated_block,
                 instruction.get("Name").unwrap().get_str().unwrap(),
                 (instruction.get("Line").unwrap().get_numeric().unwrap()
                     + context.get("Indexing").unwrap().get_indexing().unwrap())
-            ),
+            ).unwrap(),
             _ => "Error".to_string(),
         }
     }
@@ -185,14 +198,20 @@ pub fn unterminated_escaped_name(
     context: &HashMap<&'static str, ContextValues>,
     instruction: &HashMap<&'static str, InstructionValues>,
 ) -> String {
-    format!(
-        "In line {} the name of an element is escaped, but the escape sequence is not terminated until the end of the line.",
+    rt_format!(
+        context
+            .get("Messages")
+            .unwrap()
+            .get_messages()
+            .unwrap()
+            .tokenization
+            .unterminated_escaped_name,
         (instruction.get("Line").unwrap().get_numeric().unwrap()
             + context.get("Indexing").unwrap().get_indexing().unwrap())
-    )
+    ).unwrap()
 }
 
-/*impl Analysis {
+impl Analysis {
     pub fn msg_with_one_value(el: Analysis, el_name: &'static str, line: i32) -> String {
         match el_name {
             "fieldset_entry_in_field" => rt_format!(el.fieldset_entry_in_field, line).unwrap(),
@@ -432,7 +451,6 @@ impl Loaders {
         }
     }
 }
-*/
 impl Messages {
     pub fn get_messages(locale: &'static str) -> Option<Messages> {
         match locale {
